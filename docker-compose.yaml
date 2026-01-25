@@ -23,4 +23,4 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - /mnt/d/Projects/Docker/.ollama:/root/.ollama
+      - ${VOLUME_MOUNT_OLLAMA}/.ollama:/root/.ollama
