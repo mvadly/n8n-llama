@@ -1,0 +1,193 @@
+{
+  "name": "Generate User Activity Recommendations",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "1458936901",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        16
+      ],
+      "id": "63445863-44d8-4486-8786-8db1140f1e7c",
+      "name": "Send a text message",
+      "webhookId": "b317181f-879d-4470-b95c-259179cbefe3",
+      "credentials": {
+        "telegramApi": {
+          "id": "evHhZrBPcbqAd0kB",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0",
+          "mode": "list",
+          "cachedResultName": "Data n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        16
+      ],
+      "id": "f5a2bbc2-5ffc-476a-83a9-0747792cf969",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uEnvGRqXX7Vctm4a",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        688,
+        16
+      ],
+      "id": "a78294d1-a663-40f2-a621-3e12c85570f6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "mistral:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        688,
+        240
+      ],
+      "id": "38ac2060-8ff6-4b9a-87dd-ba951f4ebb17",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "QRwAXcL1DTYI25hd",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let message = \"Berikut adalah data aktivitas pengguna: \\n\"\n\nfor (let index = 0; index < $input.all().length; index++) {\n  const element = $input.all()[index].json;\n  console.log(element)\n    message += `Nama: ${element.nama}\\n`\n    message += `Kategori: ${element.kategori}\\n`\n    message += `Total Klik: ${element.total_click}\\n`\n}\n\nmessage += $('When chat message received').first().json.chatInput\n\nreturn {text: message}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        16
+      ],
+      "id": "78e60b2c-77a0-41a1-8b8c-df818a27eede",
+      "name": "Extract Json to Text"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -176,
+        16
+      ],
+      "id": "612855b0-1387-4395-90ff-0acf68f296e6",
+      "name": "When chat message received",
+      "webhookId": "ea96ba28-121a-492e-8662-f3d334515898"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Extract Json to Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Json to Text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fcc1c2f5-2eaa-4eec-b717-ab6b0bf4734e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7943b912dbf7fa34f5f787c2b89b62aae48f91ad40f69bf74816e576b916e808"
+  },
+  "id": "XnaEbTIUUzhUaFBQ",
+  "tags": []
+}
