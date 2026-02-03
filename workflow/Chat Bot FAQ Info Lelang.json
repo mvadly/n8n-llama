@@ -1,0 +1,237 @@
+{
+  "name": "Chat Bot FAQ Info Lelang",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        -368
+      ],
+      "id": "bab5a17d-d2e8-4ae8-b39b-1e4a8aefd13d",
+      "name": "Send a text message",
+      "webhookId": "b317181f-879d-4470-b95c-259179cbefe3",
+      "credentials": {
+        "telegramApi": {
+          "id": "WFqurP11lXcV8RcI",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        -368
+      ],
+      "id": "1733ddcc-eccd-4dc2-a501-ce96e57d0a0f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "faq-model:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -176
+      ],
+      "id": "88a08493-7c66-47bb-95ed-bffb823e13e7",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "QRwAXcL1DTYI25hd",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        -368
+      ],
+      "id": "0fa56746-cfe4-47ed-bbd9-e4e0098503de",
+      "name": "Telegram Trigger",
+      "webhookId": "1d2a7f2e-f2ce-49d6-8b79-c079480341cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "WFqurP11lXcV8RcI",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp/messages",
+        "responseMode": "streaming",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        -592
+      ],
+      "id": "c78af4b6-f01a-4ccd-ba46-173dde169c5c",
+      "name": "Webhook",
+      "webhookId": "03610dd8-1517-423b-b208-3e62aa0458b3",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/999317303260318/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAANFZAl6kqmgBQg6XdfF6WrFFeZCxohSVyIGtLy9tnZB8n2ZACLJssCIJkZCinF6yayNnfFVsZCZAgQpGWSZCXex3bnbXpFGGgoMDo3o0cOV2ZC0kqLZCBeY2LWkuNQST5Gqz5ZAXLfTLZBprN4W1sONwilKMLESv5cZAITIMBNrqYMlQpvbZAE1tMDxKRlJf4PDjeImZAu6jTaowFCuuZBPTRkG5V5OM1RLtZC5jsb8vArivrGtgcjrxRZAWiMJo6IdL1UZCh30YZAtJYQBQQe9b0TlLODxKvySF12B"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"recipient_type\": \"individual\",\n  \"to\": \"6287786373491\",\n  \"type\": \"text\",\n  \"text\": {\n    \"preview_url\": true,\n    \"body\": \" {{ $json.body.message }}\"\n  }\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        -608
+      ],
+      "id": "fd7e8d7b-22e0-46aa-84b5-96b5de3f2a22",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://right-smashing-lacewing.ngrok-free.app/webhook/whatsapp/messages",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatId",
+              "value": "={{ $json.result.chat.id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.result.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        528,
+        -368
+      ],
+      "id": "c5f3edd0-0e13-469b-a970-607f46eaa201",
+      "name": "Send WA"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Send WA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "7ab7c352-894d-4fe8-9b79-03db168a809d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7943b912dbf7fa34f5f787c2b89b62aae48f91ad40f69bf74816e576b916e808"
+  },
+  "id": "VCZYEWzrB6UesMM6",
+  "tags": []
+}

@@ -3,8 +3,10 @@
   "nodes": [
     {
       "parameters": {
-        "chatId": "1458936901",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ $json.output }}",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
         "additionalFields": {
           "appendAttribution": false
         }
@@ -12,77 +14,46 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1072,
-        16
+        400,
+        0
       ],
       "id": "63445863-44d8-4486-8786-8db1140f1e7c",
       "name": "Send a text message",
       "webhookId": "b317181f-879d-4470-b95c-259179cbefe3",
+      "retryOnFail": false,
       "credentials": {
         "telegramApi": {
           "id": "evHhZrBPcbqAd0kB",
           "name": "Telegram account"
         }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0",
-          "mode": "list",
-          "cachedResultName": "Data n8n",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17-jzMfX7kM4eQfk60-ncXLTn7LlRAg4dCd8aIY90OK0/edit#gid=0"
-        },
-        "options": {}
       },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        128,
-        16
-      ],
-      "id": "f5a2bbc2-5ffc-476a-83a9-0747792cf969",
-      "name": "Get row(s) in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "uEnvGRqXX7Vctm4a",
-          "name": "Google Sheets account"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.text }}",
+        "text": "={{ $json.message.text }}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        688,
-        16
+        96,
+        0
       ],
       "id": "a78294d1-a663-40f2-a621-3e12c85570f6",
       "name": "AI Agent"
     },
     {
       "parameters": {
-        "model": "mistral:latest",
+        "model": "asset-recom:latest",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        688,
-        240
+        80,
+        192
       ],
       "id": "38ac2060-8ff6-4b9a-87dd-ba951f4ebb17",
       "name": "Ollama Chat Model",
@@ -95,45 +66,194 @@
     },
     {
       "parameters": {
-        "jsCode": "let message = \"Berikut adalah data aktivitas pengguna: \\n\"\n\nfor (let index = 0; index < $input.all().length; index++) {\n  const element = $input.all()[index].json;\n  console.log(element)\n    message += `Nama: ${element.nama}\\n`\n    message += `Kategori: ${element.kategori}\\n`\n    message += `Total Klik: ${element.total_click}\\n`\n}\n\nmessage += $('When chat message received').first().json.chatInput\n\nreturn {text: message}"
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "d8d9acac-ed88-4c7e-bfb3-90c509875794",
+      "name": "Telegram Trigger",
+      "webhookId": "1d2a7f2e-f2ce-49d6-8b79-c079480341cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "evHhZrBPcbqAd0kB",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -384
+      ],
+      "id": "14446b33-0371-4ddf-a09e-0385c247cf08",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -240
+      ],
+      "id": "83d0fbeb-8652-46e4-bbbb-9981235edc8a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  x.email, CONCAT(x.first_name, '', x.last_name) as nama_pengguna, u.attempt_at as dikunjungi_pada, -- info user\n  a.name as nama_aset, asset_price as harga, price_before as harga_sebelum_diskon, type as tipe_lelang, auction_date as tgl_lelang, u.city as kota, u.province as provinsi\nFROM infolelang.user_activity u\nJOIN infolelang.users_external x ON x.id = u.user_id\nJOIN infolelang.assets a ON a.id = u.asset_id",
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        176,
+        -240
+      ],
+      "id": "56fc16c6-1727-44b1-aed8-bb43eb7f9a8c",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "Ih0xkldopg9C4tGG",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.message_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        192
+      ],
+      "id": "c0cbc4ab-3018-4eea-9ce4-6b9c3dbf3125",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.ok }}",
+                    "rightValue": 870,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "23b90ba8-7710-4d57-bc3d-edba3af33738"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Is Fail"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        0
+      ],
+      "id": "e43fd06e-be52-4679-a18b-ad2068d1e742",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst formatted = $input.first().json.data.map(item => `email: ${item.email},nama_pengguna: ${item.nama_pengguna},nama_aset: ${item.nama_aset},harga: ${item.harga},kota: ${item.kota},provinsi: ${item.provinsi}` );\n\nreturn {\"assets\": formatted.join(\"|\")};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        16
+        432,
+        -240
       ],
-      "id": "78e60b2c-77a0-41a1-8b8c-df818a27eede",
-      "name": "Extract Json to Text"
+      "id": "784ee768-7453-4f97-8d22-cdf8b2bc546d",
+      "name": "Format Model Data"
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/create",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"name\": \"asset-recom\",\n    \"from\": \"llama3.2:3b\",\n    \"system\": \"Anda adalah Asisten Untuk Memberikan Data Rekomendasi Aset untuk User Info Lelang. Gunakan data berikut sebagai dataset: {{ $json.assets }}. Jawab pertanyaan hanya terkait Data Aset Info Lelang saja \"\n} ",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.4,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
-        -176,
-        16
+        656,
+        -240
       ],
-      "id": "612855b0-1387-4395-90ff-0acf68f296e6",
-      "name": "When chat message received",
-      "webhookId": "ea96ba28-121a-492e-8662-f3d334515898"
+      "id": "013063ed-0850-4091-83da-3ce18566b529",
+      "name": "Generate Model"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output.substring(0,870) }}...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "122b0a9a-e0a6-4f2f-9aef-8c22750c4be7",
+      "name": "Send a text message1",
+      "webhookId": "a8283e38-0d08-490e-aaff-e3ee6f9209ff",
+      "credentials": {
+        "telegramApi": {
+          "id": "evHhZrBPcbqAd0kB",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "Get row(s) in sheet": {
-      "main": [
-        [
-          {
-            "node": "Extract Json to Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model": {
       "ai_languageModel": [
         [
@@ -156,7 +276,7 @@
         ]
       ]
     },
-    "Extract Json to Text": {
+    "Telegram Trigger": {
       "main": [
         [
           {
@@ -167,11 +287,77 @@
         ]
       ]
     },
-    "When chat message received": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "Get row(s) in sheet",
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Format Model Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Model Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Model",
             "type": "main",
             "index": 0
           }
@@ -181,9 +367,12 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "versionId": "fcc1c2f5-2eaa-4eec-b717-ab6b0bf4734e",
+  "versionId": "5be12fe2-5199-4f99-8e48-d8f0222d843d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "7943b912dbf7fa34f5f787c2b89b62aae48f91ad40f69bf74816e576b916e808"

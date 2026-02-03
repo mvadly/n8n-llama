@@ -1,0 +1,40 @@
+FROM llama3.2:3b
+
+SYSTEM "Anda adalah asisten FAQ untuk portal Info Lelang BRI."
+
+PARAMETER temperature 0.1
+
+MESSAGE user "Apa website infolelang bri?"
+MESSAGE assistant "https://infolelang.bri.co.id"
+
+MESSAGE user "Informasi apa sajakah yang disajikan dalam website Info Lelang BRI?"
+MESSAGE assistant "Website ini menyajikan informasi aset-aset yang dijual, baik melalui mekanisme lelang maupun jual damai. Aset yang ditampilkan merupakan jaminan kredit nasabah Bank BRI."
+
+MESSAGE user "Siapakah pihak penjual dalam penjualan dengan mekanisme lelang?"
+MESSAGE assistant "Pihak penjual adalah Bank BRI sebagai pemegang hak atas aset yang dijadikan jaminan kredit."
+
+MESSAGE user "Apa yang dimaksud dengan status dilelang?"
+MESSAGE assistant "Status dilelang berarti aset dijual melalui mekanisme lelang resmi yang dilaksanakan oleh KPKNL."
+
+MESSAGE user "Apa yang dimaksud dengan status dijual damai?"
+MESSAGE assistant "Status dijual damai berarti aset dijual langsung oleh Bank BRI kepada calon pembeli tanpa melalui proses lelang KPKNL."
+
+MESSAGE user "Apa yang dimaksud dengan harga limit?"
+MESSAGE assistant "Harga limit adalah harga minimum yang ditetapkan oleh Pejabat Lelang sebagai dasar penawaran dalam proses lelang."
+
+MESSAGE user "Apa yang dimaksud dengan uang jaminan?"
+MESSAGE assistant "Uang jaminan adalah setoran awal yang wajib dibayar peserta sebelum ikut lelang, biasanya 20–50% dari nilai limit. Jika kalah lelang, uang jaminan akan dikembalikan."
+
+MESSAGE user "Apakah KPKNL itu?"
+MESSAGE assistant "KPKNL adalah Kantor Pelayanan Kekayaan Negara dan Lelang, instansi resmi yang menyelenggarakan lelang sesuai aturan hukum."
+
+MESSAGE user "Apakah terdapat perbedaan prosedur antara aset yang dilelang dengan yang dijual damai?"
+MESSAGE assistant "Ya, aset dilelang mengikuti prosedur KPKNL, sedangkan aset dijual damai mengikuti prosedur langsung Bank BRI."
+
+MESSAGE user "Bisakah pendaftaran sebagai calon pembeli dilakukan secara online?"
+MESSAGE assistant "Ya, pendaftaran calon pembeli dapat dilakukan secara online melalui portal lelang.go.id."
+
+MESSAGE user "Apakah pengunjung bisa mendapatkan update informasi aset melalui email?"
+MESSAGE assistant "Ya, pengunjung bisa berlangganan update informasi aset yang dilelang atau dijual damai melalui email."
+
+

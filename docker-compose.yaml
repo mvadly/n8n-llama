@@ -1,19 +1,21 @@
+version: "3.8"
+
 services:
-  n8nweb:
-    image: n8nio/n8n
+  n8n:
     container_name: n8nweb
-    # restart: unless-stopped
+    image: n8nio/n8n:latest
+    restart: always
     ports:
-      - ${N8N_PORT}:5678
+      - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=${N8N_USER}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PORT=${N8N_PORT}
-      - N8N_PROTOCOL=https
-      - NODE_ENV=development
-      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      # Konfigurasi dasar n8n
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      # URL webhook akan diganti dengan URL ngrok setelah dijalankan
+      - WEBHOOK_URL=https://right-smashing-lacewing.ngrok-free.app/
+      # Token bot Telegram dari BotFather
+      # - TELEGRAM_ACCESS_TOKEN=123456789:ABCDEF_your_token_here
     volumes:
       - ./n8n_data:/home/node/.n8n
 
@@ -24,3 +26,15 @@ services:
       - "11434:11434"
     volumes:
       - ${VOLUME_MOUNT_OLLAMA}/.ollama:/root/.ollama
+
+  ngrok:
+    container_name: ngrok
+    image: docker.io/ngrok/ngrok:latest 
+    restart: always
+    depends_on:
+      - n8n
+    command: http n8n:5678 --url right-smashing-lacewing.ngrok-free.app
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTH_TOKEN}
+    ports:
+      - "4040:4040" # dashboard ngrok
